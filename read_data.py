@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from py_neuromodulation import nm_stream, nm_define_nmchannels, nm_settings, nm_analysis
+from joblib import Parallel, delayed
 
 
 def read_data(PATH_DAT):
@@ -13,13 +14,11 @@ def read_data(PATH_DAT):
     return ecog.T
 
 
-if __name__ == "__main__":
-    subjects = os.listdir("selected_dats")
-    subject = subjects[0]
-    PATH_DAT = "selected_dats/" + subject
-    dat_files = os.listdir(PATH_DAT)
-    dat_file = dat_files[29]
-
+def compute_features(
+    PATH_DAT,
+    dat_file,
+    subject,
+):
     ecog = read_data(PATH_DAT + "/" + dat_file)
 
     fs = 250
@@ -33,19 +32,38 @@ if __name__ == "__main__":
     settings_rns = settings.get_fast_compute()
     settings_rns.postprocessing["feature_normalization"] = False
     settings_rns.features.bispectrum = True
+    settings_rns.sharpwave_analysis_settings.estimator.var.append("interval")
+    settings_rns.sharpwave_analysis_settings.estimator.var.append("width")
     settings_rns.frequency_ranges_hz.pop("HFA")
     settings_rns.frequency_ranges_hz.pop("high_gamma")
+
+    settings_rns.segment_length_features_ms = 10000
 
     stream = nm_stream.Stream(
         sfreq=fs,
         nm_channels=nm_channels,
-        sampling_rate_features_hz=1,
+        sampling_rate_features_hz=1 / 10,
         settings=settings_rns,
         line_noise=60,
     )
 
     features = stream.run(
         data=ecog.astype(float),
-        out_path_root="features/"+subject,
+        out_path_root="features/" + subject,
         folder_name=dat_file[:-4],
+    )
+
+
+if __name__ == "__main__":
+    subjects = os.listdir("selected_dats")
+    subject = subjects[0]
+    PATH_DAT = "selected_dats/" + subject
+    dat_files = os.listdir(PATH_DAT)
+    dat_file = dat_files[29]
+
+    # compute_features(PATH_DAT, dat_file, subject)
+    print("Number of cores: ", os.cpu_count())
+
+    Parallel(n_jobs=-1)(
+        delayed(compute_features)(PATH_DAT, dat_file, subject) for dat_file in dat_files
     )
