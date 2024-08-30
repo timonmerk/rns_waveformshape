@@ -32,8 +32,11 @@ def compute_features(
     settings_rns = settings.get_fast_compute()
     settings_rns.postprocessing["feature_normalization"] = False
     settings_rns.features.bispectrum = True
+    settings_rns.features.sharpwave_analysis = True
     settings_rns.sharpwave_analysis_settings.estimator.var.append("interval")
     settings_rns.sharpwave_analysis_settings.estimator.var.append("width")
+    settings_rns.sharpwave_analysis_settings.sharpwave_features.num_peaks = True
+    settings_rns.sharpwave_analysis_settings.estimator.mean.append("num_peaks")
     settings_rns.frequency_ranges_hz.pop("HFA")
     settings_rns.frequency_ranges_hz.pop("high_gamma")
 
@@ -53,6 +56,8 @@ def compute_features(
         folder_name=dat_file[:-4],
     )
 
+    # e.g. ch3_avgref_Sharpwave_Mean_num_peaks_range_5_30 is not a column
+
 
 if __name__ == "__main__":
     subjects = os.listdir("selected_dats")
@@ -61,7 +66,7 @@ if __name__ == "__main__":
     dat_files = os.listdir(PATH_DAT)
     dat_file = dat_files[29]
 
-    # compute_features(PATH_DAT, dat_file, subject)
+    compute_features(PATH_DAT, dat_file, subject)
     print("Number of cores: ", os.cpu_count())
 
     Parallel(n_jobs=-1)(

@@ -6,7 +6,7 @@ authors = [
     { name = "timonmerk", email = "timon.merk95@gmail.com" }
 ]
 dependencies = [
-    "py-neuromodulation>=0.0.5",
+    "py-neuromodulation@git+https://github.com/neuromodulation/py_neuromodulation@main",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"

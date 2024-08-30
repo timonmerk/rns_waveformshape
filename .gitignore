@@ -17,3 +17,6 @@ selected_dats/*
 sub/*
 
 .vscode/*
+
+requirements-dev.lock
+requirements.lock
